@@ -40,12 +40,17 @@ export class MenuScene extends Phaser.Scene {
     makeButton(this, GAME_WIDTH / 2, 540, 220, 50, "Upgrades", () => this.scene.start("Upgrade"));
 
     this.add
-      .text(GAME_WIDTH / 2, 620, "Hold left / right side of the\nscreen to swim that way.", {
-        fontFamily: "monospace",
-        fontSize: "14px",
-        color: "#9fbfe0",
-        align: "center",
-      })
+      .text(
+        GAME_WIDTH / 2,
+        620,
+        "Hold a side of the screen to swim\nthat way — left/right AND up/down.\nDodge hunters' arrows by moving\noff their row.",
+        {
+          fontFamily: "monospace",
+          fontSize: "14px",
+          color: "#9fbfe0",
+          align: "center",
+        }
+      )
       .setOrigin(0.5);
   }
 }

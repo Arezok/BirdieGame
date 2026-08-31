@@ -6,6 +6,8 @@ export const LANE_LEFT = LANE_MARGIN;
 export const LANE_RIGHT = GAME_WIDTH - LANE_MARGIN;
 
 export const DUCK_START_Y = GAME_HEIGHT - 140;
+export const DUCK_MIN_Y = GAME_HEIGHT - 340;
+export const DUCK_MAX_Y = GAME_HEIGHT - 80;
 export const DUCK_BASE_SWIM_SPEED = 160;
 export const DUCK_BASE_CURRENT_GRIP = 1;
 
@@ -27,5 +29,11 @@ export const FOOD_SPAWN_RAMP_PER_SEC = 8;
 
 export const FIN_SPEED_BONUS_PER_LEVEL = 0.18;
 export const CURRENT_GRIP_REDUCTION_PER_LEVEL = 0.15;
+
+export const HUNTER_SPAWN_INTERVAL_START = 4200;
+export const HUNTER_SPAWN_INTERVAL_MIN = 2200;
+export const HUNTER_SPAWN_RAMP_PER_SEC = 14;
+export const HUNTER_BANK_OFFSET = 22;
+export const ARROW_SPEED = 300;
 
 export const SAVE_KEY = "river-duck-save-v1";

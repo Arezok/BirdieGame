@@ -44,18 +44,33 @@ function buildRock(): SpriteDef {
   return { key: "rock", rows: c.toRows(), palette: ROCK_PALETTE, pixelSize: 3 };
 }
 
-const HOOK_PALETTE = {
-  s: 0xc9ccd1,
-  h: 0x8f939a,
+const HUNTER_PALETTE = {
+  j: 0x3a5f3a, // jacket
+  s: 0xd9a066, // skin
+  h: 0x5c3a21, // hat
+  g: 0x2b2b2b, // gun
 };
 
-function buildHook(): SpriteDef {
+function buildHunter(): SpriteDef {
   const c = new PixelCanvas(16, 16);
-  c.fillRect(7, 0, 2, 7, "s");
-  c.fillEllipse(8, 11, 4.2, 4.2, "s");
-  c.fillEllipse(8, 10, 2.2, 2.6, ".");
-  c.fillRect(10, 7, 2, 2, "h");
-  return { key: "hook", rows: c.toRows(), palette: HOOK_PALETTE, pixelSize: 3 };
+  c.fillEllipse(8, 11, 5, 4, "j");
+  c.fillEllipse(8, 5, 3, 3, "s");
+  c.fillRect(5, 0, 7, 2, "h");
+  c.fillRect(3, 2, 11, 1, "h");
+  c.fillRect(11, 8, 5, 2, "g");
+  return { key: "hunter", rows: c.toRows(), palette: HUNTER_PALETTE, pixelSize: 3 };
+}
+
+const ARROW_PALETTE = {
+  a: 0x8a5a2b, // shaft
+  h: 0xc9ccd1, // head
+};
+
+function buildArrow(): SpriteDef {
+  const c = new PixelCanvas(8, 16);
+  c.fillRect(3, 5, 2, 11, "a");
+  c.fillTriangleUp(4, 0, 6, 3, "h");
+  return { key: "arrow", rows: c.toRows(), palette: ARROW_PALETTE, pixelSize: 3 };
 }
 
 const FOOD_PALETTE = {
@@ -87,5 +102,5 @@ function buildWaterTile(): SpriteDef {
 }
 
 export function allSprites(): SpriteDef[] {
-  return [buildDuck(), buildRock(), buildHook(), buildFood(), buildWaterTile()];
+  return [buildDuck(), buildRock(), buildHunter(), buildArrow(), buildFood(), buildWaterTile()];
 }
