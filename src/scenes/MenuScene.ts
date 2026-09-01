@@ -43,7 +43,7 @@ export class MenuScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         620,
-        "Hold a side of the screen to swim\nthat way — left/right AND up/down.\nDodge hunters' arrows by moving\noff their row.",
+        "Hold left / right side of the\nscreen to swim that way.\nDodge hunters' diagonal arrows\nby steering out of their path.",
         {
           fontFamily: "monospace",
           fontSize: "14px",

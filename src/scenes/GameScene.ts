@@ -5,8 +5,6 @@ import {
   LANE_LEFT,
   LANE_RIGHT,
   DUCK_START_Y,
-  DUCK_MIN_Y,
-  DUCK_MAX_Y,
   DUCK_BASE_SWIM_SPEED,
   SCROLL_SPEED_START,
   SCROLL_SPEED_MAX,
@@ -22,6 +20,7 @@ import {
   HUNTER_SPAWN_INTERVAL_MIN,
   HUNTER_SPAWN_RAMP_PER_SEC,
   HUNTER_BANK_OFFSET,
+  HUNTER_FIRE_LEAD,
   ARROW_SPEED,
   FIN_SPEED_BONUS_PER_LEVEL,
   CURRENT_GRIP_REDUCTION_PER_LEVEL,
@@ -52,13 +51,9 @@ export class GameScene extends Phaser.Scene {
 
   private leftDown = false;
   private rightDown = false;
-  private upDown = false;
-  private downDown = false;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyA?: Phaser.Input.Keyboard.Key;
   private keyD?: Phaser.Input.Keyboard.Key;
-  private keyW?: Phaser.Input.Keyboard.Key;
-  private keyS?: Phaser.Input.Keyboard.Key;
 
   private swimSpeed = DUCK_BASE_SWIM_SPEED;
   private currentGripMultiplier = 1;
@@ -78,8 +73,6 @@ export class GameScene extends Phaser.Scene {
     this.hunterTimer = HUNTER_SPAWN_INTERVAL_START;
     this.leftDown = false;
     this.rightDown = false;
-    this.upDown = false;
-    this.downDown = false;
     this.river = new River();
 
     const finLevel = SaveData.upgradeLevel("finSpeed");
@@ -121,8 +114,6 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard?.createCursorKeys();
     this.keyA = this.input.keyboard?.addKey("A");
     this.keyD = this.input.keyboard?.addKey("D");
-    this.keyW = this.input.keyboard?.addKey("W");
-    this.keyS = this.input.keyboard?.addKey("S");
   }
 
   private hasPointerOnSide(side: -1 | 1): boolean {
@@ -136,17 +127,6 @@ export class GameScene extends Phaser.Scene {
     return false;
   }
 
-  private hasPointerOnVertical(half: -1 | 1): boolean {
-    const pointers = this.input.manager.pointers;
-    for (const pointer of pointers) {
-      if (!pointer.isDown) continue;
-      const isUpper = pointer.y < GAME_HEIGHT / 2;
-      if (half === -1 && isUpper) return true;
-      if (half === 1 && !isUpper) return true;
-    }
-    return false;
-  }
-
   update(_time: number, deltaMs: number) {
     if (this.isGameOver) return;
     const delta = Math.min(deltaMs, 50);
@@ -154,8 +134,6 @@ export class GameScene extends Phaser.Scene {
 
     this.leftDown = this.hasPointerOnSide(-1) || !!this.cursors?.left.isDown || !!this.keyA?.isDown;
     this.rightDown = this.hasPointerOnSide(1) || !!this.cursors?.right.isDown || !!this.keyD?.isDown;
-    this.upDown = this.hasPointerOnVertical(-1) || !!this.cursors?.up.isDown || !!this.keyW?.isDown;
-    this.downDown = this.hasPointerOnVertical(1) || !!this.cursors?.down.isDown || !!this.keyS?.isDown;
 
     this.elapsedSec += dt;
     this.scrollSpeed = Math.min(SCROLL_SPEED_MAX, SCROLL_SPEED_START + this.elapsedSec * SCROLL_SPEED_RAMP_PER_SEC);
@@ -163,19 +141,13 @@ export class GameScene extends Phaser.Scene {
 
     this.water.tilePositionY -= this.scrollSpeed * dt;
 
-    let dirX = 0;
-    if (this.leftDown) dirX -= 1;
-    if (this.rightDown) dirX += 1;
-    const vx = dirX * this.swimSpeed + this.river.strength * this.currentGripMultiplier;
+    let dir = 0;
+    if (this.leftDown) dir -= 1;
+    if (this.rightDown) dir += 1;
+    const vx = dir * this.swimSpeed + this.river.strength * this.currentGripMultiplier;
     const newX = Phaser.Math.Clamp(this.duck.x + vx * dt, LANE_LEFT + 24, LANE_RIGHT - 24);
     this.duck.setX(newX);
     this.duck.setRotation(Phaser.Math.Clamp(vx / 500, -0.35, 0.35));
-
-    let dirY = 0;
-    if (this.upDown) dirY -= 1;
-    if (this.downDown) dirY += 1;
-    const newY = Phaser.Math.Clamp(this.duck.y + dirY * this.swimSpeed * dt, DUCK_MIN_Y, DUCK_MAX_Y);
-    this.duck.setY(newY);
 
     this.moveGroup(this.hazards, dt);
     this.moveGroup(this.food, dt);
@@ -235,14 +207,15 @@ export class GameScene extends Phaser.Scene {
   private updateArrows(dt: number) {
     for (const arrow of this.arrows.getChildren() as Phaser.Physics.Arcade.Image[]) {
       arrow.x += (arrow.getData("vx") as number) * dt;
-      if (arrow.x < LANE_LEFT - 40 || arrow.x > LANE_RIGHT + 40) arrow.destroy();
+      arrow.y += this.scrollSpeed * dt;
+      if (arrow.y > GAME_HEIGHT + 40 || arrow.x < LANE_LEFT - 40 || arrow.x > LANE_RIGHT + 40) arrow.destroy();
     }
   }
 
   private updateHunters() {
     for (const hunter of this.hunters.getChildren() as Phaser.Physics.Arcade.Image[]) {
       if (hunter.getData("fired")) continue;
-      if (hunter.y >= DUCK_MIN_Y - 20 && hunter.y <= DUCK_MAX_Y + 20) {
+      if (hunter.y >= DUCK_START_Y - HUNTER_FIRE_LEAD) {
         this.fireHunter(hunter);
       }
     }
@@ -253,10 +226,11 @@ export class GameScene extends Phaser.Scene {
     const side = hunter.getData("side") as "left" | "right";
     const dir = side === "left" ? 1 : -1;
     const startX = side === "left" ? LANE_LEFT + 4 : LANE_RIGHT - 4;
+    const vx = ARROW_SPEED * dir;
 
-    const arrow = this.arrows.create(startX, this.duck.y, "arrow") as Phaser.Physics.Arcade.Image;
-    arrow.setRotation(dir === 1 ? Math.PI / 2 : -Math.PI / 2);
-    arrow.setData("vx", ARROW_SPEED * dir);
+    const arrow = this.arrows.create(startX, hunter.y, "arrow") as Phaser.Physics.Arcade.Image;
+    arrow.setRotation(Math.atan2(vx, -this.scrollSpeed));
+    arrow.setData("vx", vx);
     arrow.setCircle(6, 6, 18);
     arrow.setDepth(6);
 
