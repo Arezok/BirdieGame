@@ -23,7 +23,7 @@ import {
   HUNTER_FIRE_LEAD,
   ARROW_SPEED,
   SHOTGUN_UNLOCK_DISTANCE,
-  SHOTGUN_SPREAD_MULT,
+  SHOTGUN_ANGLES_DEG,
   FIN_SPEED_BONUS_PER_LEVEL,
   CURRENT_GRIP_REDUCTION_PER_LEVEL,
 } from "../game/constants";
@@ -209,7 +209,7 @@ export class GameScene extends Phaser.Scene {
   private updateArrows(dt: number) {
     for (const arrow of this.arrows.getChildren() as Phaser.Physics.Arcade.Image[]) {
       arrow.x += (arrow.getData("vx") as number) * dt;
-      arrow.y += this.scrollSpeed * dt;
+      arrow.y += (arrow.getData("vy") as number) * dt;
       if (arrow.y > GAME_HEIGHT + 40 || arrow.x < LANE_LEFT - 40 || arrow.x > LANE_RIGHT + 40) arrow.destroy();
     }
   }
@@ -230,20 +230,23 @@ export class GameScene extends Phaser.Scene {
     const startX = side === "left" ? LANE_LEFT + 4 : LANE_RIGHT - 4;
 
     if (this.distance >= SHOTGUN_UNLOCK_DISTANCE) {
-      for (const mult of SHOTGUN_SPREAD_MULT) {
-        this.spawnArrow(startX, hunter.y, ARROW_SPEED * mult * dir);
+      const speed = Math.hypot(ARROW_SPEED, this.scrollSpeed);
+      for (const deg of SHOTGUN_ANGLES_DEG) {
+        const rad = (deg * Math.PI) / 180;
+        this.spawnArrow(startX, hunter.y, speed * Math.sin(rad) * dir, speed * Math.cos(rad));
       }
     } else {
-      this.spawnArrow(startX, hunter.y, ARROW_SPEED * dir);
+      this.spawnArrow(startX, hunter.y, ARROW_SPEED * dir, this.scrollSpeed);
     }
 
     this.tweens.add({ targets: hunter, scale: 1.3, duration: 100, yoyo: true });
   }
 
-  private spawnArrow(x: number, y: number, vx: number) {
+  private spawnArrow(x: number, y: number, vx: number, vy: number) {
     const arrow = this.arrows.create(x, y, "arrow") as Phaser.Physics.Arcade.Image;
-    arrow.setRotation(Math.atan2(vx, -this.scrollSpeed));
+    arrow.setRotation(Math.atan2(vx, -vy));
     arrow.setData("vx", vx);
+    arrow.setData("vy", vy);
     arrow.setCircle(6, 6, 18);
     arrow.setDepth(6);
   }

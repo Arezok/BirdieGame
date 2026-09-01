@@ -36,6 +36,9 @@ export const HUNTER_FIRE_LEAD = 180;
 export const ARROW_SPEED = 260;
 
 export const SHOTGUN_UNLOCK_DISTANCE = 300;
-export const SHOTGUN_SPREAD_MULT = [0.45, 1, 1.7];
+// Angle of each pellet measured from straight down, tilted toward the fired direction.
+// All pellets share the same speed magnitude — only the angle (and therefore the
+// vx/vy split) differs, so none of them looks like it's crawling relative to the others.
+export const SHOTGUN_ANGLES_DEG = [20, 45, 70];
 
 export const SAVE_KEY = "river-duck-save-v1";
