@@ -22,6 +22,8 @@ import {
   HUNTER_BANK_OFFSET,
   HUNTER_FIRE_LEAD,
   ARROW_SPEED,
+  SHOTGUN_UNLOCK_DISTANCE,
+  SHOTGUN_SPREAD_MULT,
   FIN_SPEED_BONUS_PER_LEVEL,
   CURRENT_GRIP_REDUCTION_PER_LEVEL,
 } from "../game/constants";
@@ -226,15 +228,24 @@ export class GameScene extends Phaser.Scene {
     const side = hunter.getData("side") as "left" | "right";
     const dir = side === "left" ? 1 : -1;
     const startX = side === "left" ? LANE_LEFT + 4 : LANE_RIGHT - 4;
-    const vx = ARROW_SPEED * dir;
 
-    const arrow = this.arrows.create(startX, hunter.y, "arrow") as Phaser.Physics.Arcade.Image;
+    if (this.distance >= SHOTGUN_UNLOCK_DISTANCE) {
+      for (const mult of SHOTGUN_SPREAD_MULT) {
+        this.spawnArrow(startX, hunter.y, ARROW_SPEED * mult * dir);
+      }
+    } else {
+      this.spawnArrow(startX, hunter.y, ARROW_SPEED * dir);
+    }
+
+    this.tweens.add({ targets: hunter, scale: 1.3, duration: 100, yoyo: true });
+  }
+
+  private spawnArrow(x: number, y: number, vx: number) {
+    const arrow = this.arrows.create(x, y, "arrow") as Phaser.Physics.Arcade.Image;
     arrow.setRotation(Math.atan2(vx, -this.scrollSpeed));
     arrow.setData("vx", vx);
     arrow.setCircle(6, 6, 18);
     arrow.setDepth(6);
-
-    this.tweens.add({ targets: hunter, scale: 1.3, duration: 100, yoyo: true });
   }
 
   private spawnHazard() {

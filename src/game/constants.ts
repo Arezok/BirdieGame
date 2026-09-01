@@ -35,4 +35,7 @@ export const HUNTER_BANK_OFFSET = 22;
 export const HUNTER_FIRE_LEAD = 180;
 export const ARROW_SPEED = 260;
 
+export const SHOTGUN_UNLOCK_DISTANCE = 300;
+export const SHOTGUN_SPREAD_MULT = [0.45, 1, 1.7];
+
 export const SAVE_KEY = "river-duck-save-v1";
